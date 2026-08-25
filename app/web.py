@@ -44,26 +44,32 @@ async def start_telegram() -> None:
 
     print("INFO: Telegram polling starting...", flush=True)
     await dispatcher.start_polling(bot, handle_signals=False)
-
-
+    
 @app.on_event("startup")
 async def startup_event() -> None:
     global bot_task, broadcast_task
-    bot_task = asyncio.create_task(start_telegram(), name="telegram-polling")
-    # Broadcasts are queued in Redis and processed by the same free web service.
-    broadcast_task = asyncio.create_task(
-        _broadcast_runner(), name="broadcast-worker"
+
+    bot_task = asyncio.create_task(
+        start_telegram(),
+        name="telegram-polling",
     )
 
+    def telegram_done(task: asyncio.Task):
+        try:
+            task.result()
+        except asyncio.CancelledError:
+            pass
+        except Exception as exc:
+            import traceback
+            print("🚨 TELEGRAM POLLING CRASHED:", repr(exc), flush=True)
+            traceback.print_exc()
 
-async def _broadcast_runner() -> None:
-    # Importing the actual loop here keeps startup resilient to import order.
-    if bot is None:
-        while bot is None:
-            await asyncio.sleep(0.2)
-    await broadcast_loop(bot)
+    bot_task.add_done_callback(telegram_done)
 
-
+    broadcast_task = asyncio.create_task(
+        _broadcast_runner(),
+        name="broadcast-worker",
+    )
 @app.on_event("shutdown")
 async def shutdown_event() -> None:
     global bot_task, broadcast_task, bot
