@@ -8,6 +8,7 @@ from app.handlers.admin import router as admin_router
 from app.services.redis_service import redis
 from app.db import Session,User,Broadcast
 from sqlalchemy import select,desc
+from app.worker import broadcast_loop
 
 async def broadcast_loop(bot:Bot):
     while True:
