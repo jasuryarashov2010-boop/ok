@@ -1,0 +1,75 @@
+services:
+  - type: web
+    name: stars-gifts-bot
+    runtime: python
+    plan: free
+    buildCommand: pip install --upgrade pip && pip install -r requirements.txt
+    startCommand: python -m app.bootstrap web
+    envVars:
+      - key: BOT_TOKEN
+        sync: false
+      - key: DATABASE_URL
+        fromDatabase:
+          name: stars-gifts-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: keyvalue
+          name: stars-gifts-redis
+          property: connectionString
+      - key: ADMIN_IDS
+        sync: false
+      - key: LOG_CHAT_ID
+        sync: false
+      - key: PUBLIC_FEED_CHAT_ID
+        sync: false
+      - key: PUBLIC_FEED_ENABLED
+        value: "false"
+      - key: MANDATORY_CHANNELS
+        sync: false
+      - key: PAYMENT_CARD
+        sync: false
+      - key: PAYMENT_CARD_HOLDER
+        sync: false
+      - key: MIN_TOPUP
+        value: "1000"
+      - key: MAX_TOPUP
+        value: "1000000"
+      - key: STARS_UNIT_PRICE
+        value: "200"
+      - key: CASHBACK_PERCENT
+        value: "2"
+      - key: REFERRAL_BONUS
+        value: "500"
+      - key: BOT_NAME
+        value: "⭐️ Stars & Gifts Shop"
+      - key: BOT_USERNAME
+        sync: false
+      - key: PUBLIC_URL
+        sync: false
+      - key: WEBHOOK_SECRET
+        generateValue: true
+      - key: PYTHON_VERSION
+        value: "3.13.5"
+      - key: PORT
+        value: "10000"
+      - key: OCR_ENABLED
+        value: "false"
+      - key: ANIMATION_STARS_FILE_ID
+        sync: false
+      - key: ANIMATION_GIFTS_FILE_ID
+        sync: false
+      - key: ANIMATION_TOPUP_FILE_ID
+        sync: false
+      - key: ANIMATION_CONTEST_FILE_ID
+        sync: false
+      - key: RECEIPT_LOGO_URL
+        sync: false
+  - type: keyvalue
+    name: stars-gifts-redis
+    plan: free
+    maxmemoryPolicy: noeviction
+
+databases:
+  - name: stars-gifts-db
+    plan: free
